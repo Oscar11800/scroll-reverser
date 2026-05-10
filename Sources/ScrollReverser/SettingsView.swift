@@ -2,7 +2,8 @@ import SwiftUI
 
 struct SettingsView: View {
     @StateObject private var deviceManager = DeviceManager()
-    @StateObject private var settings = ScrollSettings()
+    @ObservedObject var settings: ScrollSettings
+    @State private var launchAtLogin = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -18,25 +19,27 @@ struct SettingsView: View {
                     VStack(alignment: .leading, spacing: 20) {
                         ForEach(deviceManager.connectedMice) { mouse in
                             MouseSettingsRow(mouse: mouse, settings: settings)
-                            Divider()
                         }
                     }
                     .padding(.horizontal)
                 }
             }
 
-            Divider()
+            Spacer()
 
             HStack {
-                Toggle("Launch at Login", isOn: Binding(
-                    get: { LoginItemManager.isEnabled },
-                    set: { LoginItemManager.setEnabled($0) }
-                ))
+                Toggle("Launch at Login", isOn: $launchAtLogin)
+                    .onChange(of: launchAtLogin) { newValue in
+                        LoginItemManager.setEnabled(newValue)
+                    }
                 Spacer()
             }
         }
         .frame(minWidth: 400, maxWidth: .infinity, minHeight: 300, maxHeight: .infinity)
         .padding()
+        .onAppear {
+            launchAtLogin = LoginItemManager.isEnabled
+        }
     }
 }
 
@@ -72,14 +75,6 @@ struct MouseSettingsRow: View {
             }
 
             Toggle("Reverse Vertical Scroll", isOn: settings.reverseBinding(for: mouse))
-
-            HStack {
-                Text("Speed")
-                Slider(value: settings.speedBinding(for: mouse), in: 0.25...5.0)
-                Text(String(format: "%.1fx", settings.speed(for: mouse)))
-                    .frame(width: 40)
-                    .foregroundColor(.secondary)
-            }
         }
         .padding(.vertical, 8)
     }

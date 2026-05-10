@@ -13,9 +13,6 @@ class ScrollInterceptor {
 
     func start() -> Bool {
         let eventMask = (1 << CGEventType.scrollWheel.rawValue)
-
-        // Create the event tap
-        // We pass `self` as userInfo so the callback can access our instance
         let selfPtr = Unmanaged.passUnretained(self).toOpaque()
 
         eventTap = CGEvent.tapCreate(
@@ -28,7 +25,6 @@ class ScrollInterceptor {
         )
 
         guard let eventTap = eventTap else {
-            // This fails if Accessibility permission is not granted
             return false
         }
 
@@ -57,7 +53,6 @@ class ScrollInterceptor {
     }
 }
 
-// This must be a free function (not a method) because it's a C callback
 private func scrollCallback(
     proxy: CGEventTapProxy,
     type: CGEventType,
@@ -70,12 +65,10 @@ private func scrollCallback(
 
     let interceptor = Unmanaged<ScrollInterceptor>.fromOpaque(userInfo).takeUnretainedValue()
 
-    // If globally disabled, pass through unchanged
     guard interceptor.isEnabled else {
         return Unmanaged.passUnretained(event)
     }
 
-    // If the tap was disabled by the system (e.g., timeout), re-enable it
     if type == .tapDisabledByTimeout || type == .tapDisabledByUserInput {
         if let tap = interceptor.eventTap {
             CGEvent.tapEnable(tap: tap, enable: true)
@@ -83,32 +76,23 @@ private func scrollCallback(
         return Unmanaged.passUnretained(event)
     }
 
-    // Get the source device ID from the event
-    // Field 87 is the HID device sender ID
+    // Check if reverse is enabled for any device
     let senderID = Int64(event.getIntegerValueField(CGEventField(rawValue: 87)!))
-
-    // Get settings for this device
     let isReversed = interceptor.settings.isReversedForDevice(senderID)
-    let speed = interceptor.settings.speedForDevice(senderID)
 
-    // Only modify if there's something to change
-    if !isReversed && speed == 1.0 {
+    guard isReversed else {
         return Unmanaged.passUnretained(event)
     }
 
-    // Get current scroll deltas
-    let scrollDeltaY = event.getIntegerValueField(.scrollWheelEventDeltaAxis1)
-    let scrollPointDeltaY = event.getDoubleValueField(CGEventField(rawValue: 11)!) // scrollWheelEventPointDeltaAxis1
+    // Flip all vertical scroll deltas
+    let lineDelta = event.getIntegerValueField(.scrollWheelEventDeltaAxis1)
+    event.setIntegerValueField(.scrollWheelEventDeltaAxis1, value: -lineDelta)
 
-    // Apply reverse
-    let reverseFactor: Int64 = isReversed ? -1 : 1
+    let pointDelta = event.getDoubleValueField(CGEventField(rawValue: 11)!)
+    event.setDoubleValueField(CGEventField(rawValue: 11)!, value: -pointDelta)
 
-    // Apply speed and reverse to the scroll values
-    let newDeltaY = scrollDeltaY * reverseFactor * Int64(speed)
-    let newPointDeltaY = scrollPointDeltaY * Double(reverseFactor) * speed
-
-    event.setIntegerValueField(.scrollWheelEventDeltaAxis1, value: newDeltaY)
-    event.setDoubleValueField(CGEventField(rawValue: 11)!, value: newPointDeltaY)
+    let fixedDelta = event.getIntegerValueField(CGEventField(rawValue: 93)!)
+    event.setIntegerValueField(CGEventField(rawValue: 93)!, value: -fixedDelta)
 
     return Unmanaged.passUnretained(event)
 }

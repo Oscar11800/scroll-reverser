@@ -5,7 +5,6 @@ class ScrollSettings: ObservableObject {
 
     struct DeviceSettings: Codable {
         var reverseVertical: Bool = false
-        var speedMultiplier: Double = 1.0
         var customLabel: String?
     }
 
@@ -15,10 +14,6 @@ class ScrollSettings: ObservableObject {
 
     func isReversed(for mouse: MouseDevice) -> Bool {
         deviceSettings[mouse.id]?.reverseVertical ?? false
-    }
-
-    func speed(for mouse: MouseDevice) -> Double {
-        deviceSettings[mouse.id]?.speedMultiplier ?? 1.0
     }
 
     func customLabel(for mouse: MouseDevice) -> String? {
@@ -42,42 +37,12 @@ class ScrollSettings: ObservableObject {
         )
     }
 
-    func speedBinding(for mouse: MouseDevice) -> Binding<Double> {
-        Binding(
-            get: { self.speed(for: mouse) },
-            set: { newValue in
-                self.ensureSettings(for: mouse)
-                self.deviceSettings[mouse.id]?.speedMultiplier = newValue
-                self.save()
-            }
-        )
-    }
-
-    // Used by ScrollInterceptor with raw device IDs from CGEvents
+    // Used by ScrollInterceptor
     func isReversedForDevice(_ deviceID: Int64) -> Bool {
-        // Check all stored devices - the event device ID might match one
         for (_, settings) in deviceSettings {
             if settings.reverseVertical { return true }
         }
-        // For now, if any device has reverse enabled and we can't distinguish, apply it
-        // We'll refine device matching later
         return false
-    }
-
-    func speedForDevice(_ deviceID: Int64) -> Double {
-        for (_, settings) in deviceSettings {
-            if settings.speedMultiplier != 1.0 { return settings.speedMultiplier }
-        }
-        return 1.0
-    }
-
-    // Direct ID-based lookup for when we have a known device ID
-    func isReversed(forID id: Int64) -> Bool {
-        deviceSettings[id]?.reverseVertical ?? false
-    }
-
-    func speed(forID id: Int64) -> Double {
-        deviceSettings[id]?.speedMultiplier ?? 1.0
     }
 
     private func ensureSettings(for mouse: MouseDevice) {
@@ -88,7 +53,6 @@ class ScrollSettings: ObservableObject {
 
     private func save() {
         let encoder = JSONEncoder()
-        // Convert Int64 keys to strings for JSON
         let stringKeyed = Dictionary(uniqueKeysWithValues: deviceSettings.map { (String($0.key), $0.value) })
         if let data = try? encoder.encode(stringKeyed) {
             UserDefaults.standard.set(data, forKey: "deviceSettings")

@@ -11,7 +11,7 @@ struct ScrollReverserApp: App {
         }
 
         Window("ScrollReverser Settings", id: "settings") {
-            SettingsView()
+            SettingsView(settings: appState.settings)
         }
     }
 }
