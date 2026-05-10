@@ -1,0 +1,11 @@
+---
+triple:          'arm64-apple-darwin'
+binary-path:     '/Users/oscarrelatent/Documents/dev/scroll-reverser/.build/arm64-apple-macosx/debug/ScrollReverser'
+relocations:
+  - { offset: 0x89, size: 0x8, addend: 0x0, symName: _ScrollReverser_main, symObjAddr: 0x0, symBinAddr: 0x100000620, symSize: 0xC8 }
+  - { offset: 0x9F, size: 0x8, addend: 0x0, symName: _ScrollReverser_main, symObjAddr: 0x0, symBinAddr: 0x100000620, symSize: 0xC8 }
+  - { offset: 0xBC, size: 0x8, addend: 0x0, symName: '_$sSa12_endMutationyyF', symObjAddr: 0x160, symBinAddr: 0x100000780, symSize: 0xC }
+  - { offset: 0xDD, size: 0x8, addend: 0x0, symName: '_$ss27_finalizeUninitializedArrayySayxGABnlF', symObjAddr: 0xC8, symBinAddr: 0x1000006E8, symSize: 0x40 }
+  - { offset: 0x105, size: 0x8, addend: 0x0, symName: '_$ss5print_9separator10terminatoryypd_S2StFfA0_', symObjAddr: 0x108, symBinAddr: 0x100000728, symSize: 0x2C }
+  - { offset: 0x120, size: 0x8, addend: 0x0, symName: '_$ss5print_9separator10terminatoryypd_S2StFfA1_', symObjAddr: 0x134, symBinAddr: 0x100000754, symSize: 0x2C }
+...
