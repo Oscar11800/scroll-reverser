@@ -10,7 +10,8 @@ let package = Package(
     targets: [
         .executableTarget(
             name: "ScrollReverser",
-            path: "Sources/ScrollReverser"
+            path: "Sources/ScrollReverser",
+            swiftSettings: [.unsafeFlags(["-parse-as-library"])]
         )
     ]
 )

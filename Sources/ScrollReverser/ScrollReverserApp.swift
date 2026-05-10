@@ -14,7 +14,20 @@ struct ScrollReverserApp: App {
                         Divider()
                         Button("Quit") {
                                 NSApplication.shared.terminate(nil)
-                            }
-                    }
-            }
-    }
+                        }
+                }
+
+                Window("ScrollReverser Settings", id: "settings") {
+                        SettingsView()
+                }
+        }
+}
+
+struct SettingsView: View {
+        var body: some View {
+                Text("Settings here")
+                    .frame(width: 400, height: 300)
+                    .padding()
+        }
+}
+
